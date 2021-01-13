@@ -1,0 +1,679 @@
+openapi: 3.0.1
+info:
+  title: Swagger BuddyProjectAPI
+ 
+    
+     
+  
+    
+
+    
+    
+    
+    
+    
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+
+# Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: http://localHost:8080/api/
+tags:
+  - name: auth
+    description: register, login, logout
+  - name: profiles
+    description: profile endpoints 
+  - name: matches
+    description: get matches
+  - name: messages
+    description: all endpoints dealing with messages
+  - name: group chats 
+    description: all endpoints dealing with group chats
+paths:
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary:  Register a new user, get a token in return.
+      operationId: registerUser
+      description: Only admins can use this endpoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRequestBody'
+        required: true
+      responses:
+        201:
+          description: account created succesfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/jwtResponseBody'
+        403:
+          description: Not authenticated
+
+        401:
+          description: Only admins can register new users
+
+        406:
+          description: This student number already exist
+        412:
+          description: password does not match requirements
+
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Log in a registered user, get a token in return 
+      operationId: login
+      requestBody:
+        description: password and student number
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequestBody'
+        required: true
+      responses:
+        200:
+          description: login succesfull
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/jwtResponseBody"
+        401:
+          description: wrong username or password
+  
+  /profiles/{id}:
+    get:
+      tags:
+        - profiles
+      summary: get a profile by its id
+      security:
+        - bearerAuth: []
+      description: | 
+          ##  admin
+              returns profile if it exist
+          ##  buddy
+              returns profile if user is of the same dicipline
+          ##  pupil
+              returns profile if user is of the same dicipline
+      operationId: getProfileById
+      parameters:
+        - name: id
+          in: path
+          description: the id of the profile
+          required: true
+          schema:
+            type: integer
+      responses:
+        201: 
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        403:
+          description: not authenticated
+        401:
+          description: not authorized
+        404: 
+          description: this profile does not exist. 
+          
+  /profiles:
+    get:
+      tags:
+        - profiles
+      summary: get a list of profiles eventually filtered by student_number, discipline or user_type
+      security:
+        - bearerAuth: []
+      description: | 
+            ###  admin 
+                retuns all profiles
+            ###  pupil
+                Returns all profiles with the same dicipline as the actor where the usertype is buddy.   
+            ###  buddy
+                Returns all profiles with the same dicipline
+      operationId: searchProfiles
+      parameters:
+        - name: student_number
+          in: query
+          explode: false
+          description: 
+                Filters out all different studentnumbers (leaving max 1 result). 
+          required: false
+          schema:
+            type: integer
+        - name: discipline
+          in: query
+          explode: false
+          description: Filters out every result not being part of the given disciplines.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: user_type
+          in: query
+          explode: false
+          description: Filters out every result with another user_type
+          required: false
+          schema:
+            type: array
+            items: 
+              enum: [admin, buddy, pupil ]
+              type: string
+        - name: sortby
+          in: query
+          explode: false
+          required: false
+          description: orders your results by the parameter you specify 
+          schema:
+            enum: [date,workload,name]
+            type: string
+            default: workload
+        - name: order
+          in: query
+          explode: false
+          description: orders your results asc or desc
+          required: false
+          schema:
+              enum: [asc, desc]
+              type: string
+              default: asc
+      responses:
+        201: 
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Profile"
+        403:
+          description: not authenticated
+        401:
+          description: not authorized
+    post:
+      tags: 
+        - profiles 
+      security:
+        - bearerAuth: []
+      summary: create a new profile
+      responses:
+        201:
+          description: profile created succesfully
+        400:
+          description: Bad Request
+        406:
+          description: This profile already exists
+        403:
+          description: not authenticated
+        401:
+          description: not authorized
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/ProfileRequestBody'
+
+        required: false
+    patch:
+      tags:
+        - profiles
+      security:
+        - bearerAuth: []
+      summary: change a profile
+      description: | 
+            ###  admin 
+                Can change all profiles, except of other admins
+            ###  buddy & pupil
+                Can change their own profile 
+
+      operationId: changeProfile
+      requestBody:
+        description: | 
+            ###  admin 
+                Because an admin can change other accounts a student number can be posted. If the admin doesn't post a student number the API will change his own profile
+            ###  buddy & pupil
+                Should leave out their student number
+            
+                 
+        content:
+          application/json:
+            schema:
+               $ref: '#/components/schemas/Profile'
+
+        required: true
+      responses:
+        201:
+          description: Changes committed
+        400:
+          description: Bad request
+        404:
+          description: No profile found
+        403:
+          description: Not authenticated. 
+        401:
+          description: Not authorized, only admin accounts can change someone else his/her profile
+   
+
+    
+
+  /matches:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - matches
+      summary: get a list of matches eventually filtered by query parameters 
+      description: |
+          ##  admin
+              Can see all matches
+          ##  buddy
+              Can see his own matches
+          ##  pupil
+              Can see his own match
+      
+      
+      operationId: getMatches
+      parameters: 
+        - name: "student_number"
+          in: query
+          style: form
+          schema:  
+            type: integer
+          
+                  
+          
+          
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Match" 
+        403:
+          description: "not authenticated"
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - matches
+      summary: 'make a match'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostMatchRequestBody'
+
+      responses:
+        201:
+          description: success
+        409:
+          description: someone else took your budy
+        404:
+          description: buddy not found
+        403:
+          description: not authenticated
+        401:
+          description: not authorized
+
+  /matches/{matchId}:
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - matches
+      summary: delete a match
+      parameters:
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+      description: |
+          ##  admin
+              Can delete all matches
+          ##  buddy
+              Can delete his own matches
+          ##  pupil
+              Can delete his own matches
+      responses:
+        201:
+          description: success
+        404:
+          description: user not found or user was not a match
+        403:
+          description: not authenticated
+        401:
+          description: not authorized
+
+  /messages:
+    get: 
+      security:
+        - bearerAuth: []
+      tags: 
+        - messages
+      summary: get messages
+      description: 
+        |         
+          ##  admin
+              Can get all messages
+          ##  buddy
+              Can see messages where he is sender or reciever
+          ##  pupil
+              Can see messages where he is sender or reciever
+      parameters: 
+        - name: sender
+          in: query
+          description: the studentnumber of the user
+          required: true
+          schema: 
+            type: integer
+        - name: reciever
+          in: query
+          description: the studentnumber of the reciever
+          required: true
+          schema: 
+            type: integer
+      responses: 
+        200:
+          description: Message send 
+        400:
+          description: Bad request
+        403:
+          description: not authenticated
+        401:
+          description: not authorized
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - messages
+      summary: send a message
+      requestBody:
+        description: | 
+          ##  admin
+              Can send messages to everyone
+          ##  buddy
+              Can send messages to his pupils and buddies within his dicipline, people within the same chat group
+          ##  pupil
+              Can send messages to his buddy, buddies within his dicipline, people within the same chat group
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequestBody'
+        required: true
+      responses:
+        201:
+          description: Message send 
+
+        400:
+          description: Bad request
+        403:
+          description: not authenticated
+        401:
+          description: not authorized
+  /messages/{id}:
+    delete:
+      security:
+        - bearerAuth: []
+      description: |
+          ##  admin
+              Can delete all messages
+          ##  buddy
+              Can delete his own messages 
+          ##  pupil
+              Can delete his own messages
+      tags:
+        - messages
+      summary: delete a message by its id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        201:
+          description: success
+        404:
+          description: message not found
+        403:
+          description: not authenticated
+        401:
+          description: not authorized
+    get:
+      security:
+        - bearerAuth: []
+      description: |
+          ##  admin
+              Can get all messages
+          ##  buddy
+              Can see messages where he is sender, where he is reciever, where he is in the same chatgroup 
+          ##  pupil
+              Can see messages where he is sender, where he is reciever, where he is in the same chatgroup 
+      tags:
+        - messages
+      summary: get a specific message by its id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponseBody"          
+        404:
+          description: message not found
+        403:
+          description: not authenticated
+        401:
+          description: not authorized
+
+
+
+
+
+
+
+
+components:
+  schemas:
+    AccountRequestBody:
+      properties:
+        student_number:
+          type: integer
+          example: '566810'
+        password:
+          type: string
+          example: "!4cGb95656b"
+      
+      
+        account_type:
+          type: string
+          enum: ["admin", "buddy", "pupil"]
+
+
+      required:
+        - student_number
+        - password
+        - account_type
+        
+        
+        
+  
+    PostMatchRequestBody:
+      type: object
+      properties: 
+        student_number:
+          type: integer 
+          example: 566810
+
+
+
+
+    LoginRequestBody:
+      type: object
+      properties:
+        student_number:
+          type: integer
+          example: '566810'
+        password:
+          type: string
+          example: "!4cGb95656b"
+      required:
+        - student_number
+        - password
+
+    Profile:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: "Tim"
+        last_name:
+          type: string
+          example: "Ranzijn"
+        date_of_birth:
+          type: string
+          example: '29-8-1993'
+        discipline:
+          type: string
+          example: "informatica"
+        study_year:
+          type: integer
+          example: "4"
+        biography:
+          type: string
+          example: "Hallo mijn naam...  is ik ben geboren in..  mijn intresses zijn..  ik zou het leuk vinden om je aankomend half jaar te helpen met je doorstroom"
+ 
+    ProfileRequestBody:
+      allOf: 
+        - $ref: "#/components/schemas/Profile"
+      properties: 
+        student_number: 
+          type: integer
+      required: 
+        - student_number 
+          
+        
+
+    
+    
+    Match: 
+      type: object
+      properties: 
+        pupil: 
+          type: integer
+          example: 566810
+        buddy:
+          type: integer
+          example: 566811
+        datetime:
+          type: string
+          example: "2018-12-19 09:26:03.478039" 
+          
+
+
+
+
+    MessageResponseBody:
+      properties:
+        sender:
+          type: integer
+          example: 566810
+        reciever:
+          type: integer
+          example: 566811
+        date:
+          type: string
+          example: "29-8-2020"
+        time:
+          type: string
+          example: "4:15"
+
+        message:
+          type: string
+          example: "hoi"
+      required:
+        - reciever
+        - message
+        - sender
+        
+
+    MessageRequestBody:
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        
+        
+        
+    Message: 
+      properties: 
+        reciever:
+          type: integer
+          example: 566811
+        date:
+          type: string
+          example: "29-8-2020"
+        time:
+          type: string
+          example: "4:15"
+
+        message:
+          type: string
+          example: "hoi"
+      required:
+        - reciever
+        - message
+        - sender
+
+
+
+
+
+
+
+
+    jwtResponseBody:
+      type: object
+      properties:
+        acces_token:
+          type: string
+          example: "2YotnFZFEjr1zCsicMWpAA"
+        token_type:
+          type: string
+          example: "Bearer"
+        expires_in:
+          type: integer
+          example: '3600'
+
+
+
+
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
