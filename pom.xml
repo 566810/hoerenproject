@@ -75,11 +75,7 @@
 			<version>2.0.0-rc2</version>
 		</dependency>
 		<!--openapi-->
-		<dependency>
-			<groupId>org.openapitools</groupId>
-			<artifactId>jackson-databind-nullable</artifactId>
-			<version>0.2.1</version>
-		</dependency>
+
 		<!--testing-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -161,29 +157,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.openapitools</groupId>
-				<artifactId>openapi-generator-maven-plugin</artifactId>
-				<version>4.2.3</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<inputSpec>
-								${project.basedir}/src/main/resources/specification.yml
-							</inputSpec>
-							<generatorName>spring</generatorName>
-							<modelPackage>blend.buddyapp.api.resources.token.model</modelPackage>
-							<apiPackage>blend.buddyapp.api</apiPackage>
-							<supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
-							<configOptions>
-							</configOptions>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
