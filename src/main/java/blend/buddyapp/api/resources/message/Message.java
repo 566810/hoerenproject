@@ -2,7 +2,7 @@ package blend.buddyapp.api.resources.message;
 
 import blend.buddyapp.api.resources.users.model.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.apache.james.mime4j.field.datetime.DateTime;
+
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

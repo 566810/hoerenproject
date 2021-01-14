@@ -1,4 +1,4 @@
-package blend.buddyapp.api.resources.token.models;
+package blend.buddyapp.api.resources.login.models;
 
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -5,7 +5,6 @@ import blend.buddyapp.api.resources.match.model.Match;
 import blend.buddyapp.api.resources.profiles.Profile;
 import blend.buddyapp.api.resources.profiles.ProfileRepository;
 import blend.buddyapp.api.resources.users.model.User;
-import blend.buddyapp.api.resources.users.repository.KeyCloakUserRepository;
 import blend.buddyapp.api.resources.users.repository.UserRepository;
 import blend.buddyapp.api.wrappers.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,7 @@ import java.util.stream.Stream;
 
 @org.springframework.stereotype.Service
 public class UserService {
-    @Autowired
-    KeyCloakUserRepository keyCloakUserRepository;
+
     @Autowired
     UserRepository repository;
     @Autowired
@@ -42,14 +40,6 @@ public class UserService {
     }
 
     public Result<?> addUser(User user) throws Exception {
-        String username = user.getStudentNumber().toString();
-        HttpStatus status = keyCloakUserRepository.addUser(user);
-        if (status.isError()) return new Result<>("Could not add user", status);
-        status = keyCloakUserRepository.subscribeUserToRole(user.getUserType(), user.getStudentNumber().toString());
-        if (status.isError() && !keyCloakUserRepository.deleteUser(username).isError())
-            return new Result<>("Couldn't subscribe user to Role, account deleted", status);
-        else if (status.isError())
-            return new Result<>("Couldn't subscribe user to Role, Could also not delete this account.. Your tokens will be worthless, contact your admin", status);
         repository.save(user);
         return new Result<>("account added", HttpStatus.CREATED);
     }
@@ -59,8 +49,7 @@ public class UserService {
         if (!optionalUser.isPresent())
             return new ResponseEntity("something went wrong", HttpStatus.BAD_REQUEST);
         User user = optionalUser.get();
-        if (keyCloakUserRepository.deleteUser(user.getStudentNumber().toString()).isError())
-            return new ResponseEntity("something went wrong", HttpStatus.BAD_REQUEST);
+
         repository.delete(user);
         return new ResponseEntity("nice!", HttpStatus.OK);
     }

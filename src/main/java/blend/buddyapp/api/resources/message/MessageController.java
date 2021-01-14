@@ -1,8 +1,6 @@
 package blend.buddyapp.api.resources.message;
 
 
-import blend.buddyapp.api.resources.users.UserService;
-import org.jboss.resteasy.annotations.Body;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.ws.rs.Path;
-import java.time.LocalDateTime;
+
 
 
 @Validated

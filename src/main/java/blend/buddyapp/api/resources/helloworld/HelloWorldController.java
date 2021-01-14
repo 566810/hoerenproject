@@ -1,9 +1,11 @@
 package blend.buddyapp.api.resources.helloworld;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,11 +16,20 @@ import java.security.Principal;
 @RequestMapping("${openapi.swaggerBuddyProject.base-path:/api}")
 public class HelloWorldController {
 
+    @Autowired
+    HelloWorldService hws;
+
 
     @RequestMapping(value = "/ping", method = RequestMethod.POST)
     public ResponseEntity<String> helloWorld (Principal userPrincipal) {
         Principal x = userPrincipal;
         return new  ResponseEntity<String>("Server is up and running", HttpStatus.OK );
+    }
+
+    @RequestMapping(value = "/dbtest", method = RequestMethod.POST)
+    public ResponseEntity<String> ffsdb (@RequestBody TesEntity tes ) {
+        hws.addTest(tes);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     @RequestMapping(value = "/onlyBuddy", method = RequestMethod.POST)

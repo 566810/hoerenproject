@@ -8,7 +8,6 @@ package blend.buddyapp.api.resources.users.controller;
 
 import blend.buddyapp.api.resources.users.model.User;
 import io.swagger.annotations.*;
-import org.keycloak.representations.AccessTokenResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,24 +20,7 @@ import javax.validation.Valid;
 @io.swagger.annotations.Api(value = "auth", description = "the auth API")
 public interface UserApi {
 
-    /**
-     * POST /auth/register : Register a new user, get a token in return.
-     * Only admins can use this endpoint
-     *
-     * @param accountRequestBody  (required)
-     * @return account created succesfully (status code 201)
-     *         or Not authenticated (status code 403)
-     *         or Only admins can register new users (status code 401)
-     *         or This student number already exist (status code 406)
-     *         or password does not match requirements (status code 412)
-     */
-    @ApiOperation(value = "Register a new user, get a token in return.", nickname = "registerUser", notes = "Only admins can use this endpoint", response = AccessTokenResponse.class, tags={ "auth", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "account created succesfully", response = AccessTokenResponse.class),
-        @ApiResponse(code = 403, message = "Not authenticated"),
-        @ApiResponse(code = 401, message = "Only admins can register new users"),
-        @ApiResponse(code = 406, message = "This student number already exist"),
-        @ApiResponse(code = 412, message = "password does not match requirements") })
+
     @RequestMapping(value = "/users",
         produces = { "application/json" }, 
         consumes = { "application/json" },
